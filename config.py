@@ -26,47 +26,56 @@
 
 from typing import List  # noqa: F401
 
-import subprocess
-import os
-
 from libqtile import bar, layout, widget
 from libqtile.config import Click, Drag, Group, Key, Screen, hook
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+# User setting
+import os
+import subprocess
+
+
 mod = "mod4"
+mod1 = "mod1"
 terminal = guess_terminal()
+
+def changeWallpaper():
+    cmd = ['feh', '--bg-fill', '--randomize', '~/Pictures/backgrounds/ ']
+    subprocess.run(cmd)
 
 keys = [
     # Switch between windows
-    Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
-    Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
-    Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
-    Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(),
+    Key([mod], "j", lazy.layout.left(),     desc="Move focus to left"),
+    Key([mod], "semicolon", lazy.layout.right(),    desc="Move focus to right"),
+    Key([mod], "k", lazy.layout.down(),     desc="Move focus down"),
+    Key([mod], "l", lazy.layout.up(),       desc="Move focus up"),
+   
+    Key([mod], "space",
+        lazy.layout.next(),
         desc="Move window focus to other window"),
 
     Key([mod], "f", lazy.window.toggle_floating(), desc="Toggle floating"),
 
     # Move windows between left/right columns or move up/down in current stack.
     # Moving out of range in Columns layout will create new column.
-    Key([mod, "shift"], "h", lazy.layout.shuffle_left(),
+    Key([mod, "shift"], "j", lazy.layout.shuffle_left(),
         desc="Move window to the left"),
-    Key([mod, "shift"], "l", lazy.layout.shuffle_right(),
+    Key([mod, "shift"], "semicolon", lazy.layout.shuffle_right(),
         desc="Move window to the right"),
-    Key([mod, "shift"], "j", lazy.layout.shuffle_down(),
+    Key([mod, "shift"], "k", lazy.layout.shuffle_down(),
         desc="Move window down"),
-    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    Key([mod, "shift"], "l", lazy.layout.shuffle_up(), desc="Move window up"),
 
     # Grow windows. If current window is on the edge of screen and direction
     # will be to screen edge - window would shrink.
-    Key([mod, "control"], "h", lazy.layout.grow_left(),
+    Key([mod, "control"], "j", lazy.layout.grow_left(),
         desc="Grow window to the left"),
-    Key([mod, "control"], "l", lazy.layout.grow_right(),
+    Key([mod, "control"], "semicolon", lazy.layout.grow_right(),
         desc="Grow window to the right"),
-    Key([mod, "control"], "j", lazy.layout.grow_down(),
+    Key([mod, "control"], "k", lazy.layout.grow_down(),
         desc="Grow window down"),
-    Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
+    Key([mod, "control"], "l", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
 
     # Toggle between split and unsplit sides of stack.
@@ -75,21 +84,45 @@ keys = [
     # multiple stack panes
     Key([mod, "shift"], "Return", lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack"),
-    Key([mod], "Return", lazy.spawn('gnome-terminal'), desc="Launch terminal"),
+    Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
 
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
 
-    Key([mod, "control"], "r", lazy.restart(), desc="Restart Qtile"),
-    # Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-    Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
+    Key([mod, "control"], "r",
+        lazy.restart(), 
+        desc="Restart Qtile"),
+   
+    Key([mod], "d",
+        lazy.spawncmd(),
+        desc="Spawn a command using a prompt widget"),
 
-    Key([mod, 'control'], 'l', lazy.spawn('gnome-screensaver-command -l')),
-    Key([mod, 'control'], 'q', lazy.spawn(
-        'gnome-session-quit --logout --no-prompt')),
-    Key([mod, 'shift', 'control'], 'q', lazy.spawn(
+    Key([mod, 'control'], 'q',
+         lazy.spawn('gnome-session-quit --logout --no-prompt')),
+    
+    Key([mod, 'shift', 'control'], 'q',
+        lazy.spawn(
         'gnome-session-quit --power-off')),
+
+    Key(
+        [], "XF86AudioRaiseVolume",
+        lazy.spawn("amixer -c 0 -q set Master 2dB+")
+    ),
+    Key(
+        [], "XF86AudioLowerVolume",
+        lazy.spawn("amixer -c 0 -q set Master 2dB-")
+    ),
+    Key(
+        [], "XF86AudioMute",
+        lazy.spawn("amixer -c 0 -q set Master toggle")
+    ),
+
+    Key(
+        [mod, mod1], "w",
+        lazy.spawn("feh --bg-fill --randomize /home/ericson/Pictures/backgrounds/"),
+        desc="Change wallpaper", 
+    )
 
 ]
 
@@ -117,7 +150,7 @@ layouts = [
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
     # layout.Matrix(),
-    # layout.MonadTall(),
+    layout.MonadTall(),
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
@@ -135,11 +168,11 @@ extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
-        bottom=bar.Bar(
+        top=bar.Bar(
             [
                 widget.CurrentLayout(),
                 widget.GroupBox(),
-                widget.Prompt(),
+                widget.Prompt(prompt="> "),
                 widget.WindowName(),
                 widget.Chord(
                     chords_colors={
@@ -147,18 +180,47 @@ screens = [
                     },
                     name_transform=lambda name: name.upper(),
                 ),
-                widget.TextBox("default config", name="default"),
-                widget.TextBox("Press &lt;M-r&gt; to spawn",
-                               foreground="#d75f5f"),
-                widget.Volume(),
+                # widget.TextBox("default config", name="default"),
+                # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
+                widget.Sep(),
+                widget.CPUGraph(
+                    background='161616',
+                    graph_color='118ab2',
+                    fill_color='118ab2.8',
+                    border_color='118ab2',
+                    border_width=0,
+                    line_width=1,
+                    type='box'),
+                widget.NetGraph(
+                    background='161616',
+                    graph_color='06d6a0',
+                    fill_color='06d6a0.8',
+                    border_color='06d6a0',
+                    border_width=0,
+                    line_width=1),
+                widget.MemoryGraph(
+                    background='161616',
+                    graph_color='ffd166',
+                     fill_color='ffd166.8',
+                    border_color='ffd166',
+                    border_width=0,
+                    line_width=1),
+                widget.Sep(),
                 widget.Systray(),
+                widget.Sep(),
+                widget.Image(
+                    filename='~/.config/qtile/volume.png',
+                    margin_x=5,
+                    margin_y=5,
+                    margin=0),
+                widget.PulseVolume(),
+                widget.Sep(),
                 widget.Clock(format='%Y-%m-%d %a %I:%M %p'),
-                widget.QuickExit(),
+                # widget.Sep(),
+                # widget.QuickExit(),
             ],
             24,
         ),
-        wallpaper='/usr/share/backgrounds/gnome/adwaita-night.jpg',
-        wallpaper_mode='fill',
     ),
 ]
 
@@ -194,11 +256,17 @@ floating_layout = layout.Floating(float_rules=[
     {'wname': 'pinentry'},  # GPG key password entry
     {'wmclass': 'ssh-askpass'},  # ssh-askpass
 
-#   Eclipse
+    #   Eclipse
     {'wname': 'Find/Replace '},
     {'wname': 'Confirm Exit '},
     {'wname': 'Eclipse IDE Launcher '},
-#   Skype
+    {'wname': 'Open Resource '},
+    {'wname': 'Search '},
+    {'wname': 'Rename Resource '},
+    {'wname': 'Create Build Target '},
+    {'wname': 'Go to Line '},
+    {'wname': 'New Project '},
+    #   Skype
     {'wname': 'Skype'},
 
 ])
@@ -229,3 +297,9 @@ def dbus_register():
                       'org.gnome.SessionManager.RegisterClient',
                       'string:qtile',
                       'string:' + id])
+
+
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    subprocess.call([home])
