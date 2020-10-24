@@ -44,7 +44,7 @@ terminal = guess_terminal()
 HOME = os.path.expanduser('~')
 
 def changeWallpaper():
-    cmd = ['feh', '--bg-fill', '--randomize', '~/Pictures/backgrounds/ ']
+    cmd = ['feh', '--bg-fill', '--randomize', f'{HOME}/Pictures/backgrounds/ ']
     subprocess.run(cmd)
 
 keys = [
@@ -110,20 +110,20 @@ keys = [
 
     Key(
         [], "XF86AudioRaiseVolume",
-        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume 2"))
+        lazy.spawn(f"{HOME}/.config/qtile/pcvolume 2")
     ),
     Key(
         [], "XF86AudioLowerVolume",
-        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume -2")),
+        lazy.spawn(f"{HOME}/.config/qtile/pcvolume -2"),
     ),
     Key(
         [], "XF86AudioMute",
-        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume --mute")),
+        lazy.spawn(f"{HOME}/.config/qtile/pcvolume --mute"),
     ),
 
     Key(
         [mod, mod1], "w",
-        lazy.spawn("feh --bg-fill --randomize /home/ericson/Pictures/backgrounds/"),
+        lazy.spawn(f"feh --bg-fill --randomize {HOME}/Pictures/backgrounds/"),
         desc="Change wallpaper", 
     ),
 
@@ -185,7 +185,7 @@ screens = [
         top=bar.Bar(
             [
                 widget.CurrentLayoutIcon(
-                    custom_icon_paths = [os.path.expanduser("~/.config/qtile/icons")],
+                    custom_icon_paths = [f"{HOME}/.config/qtile/icons"],
                     padding = 0,
                     scale = 0.7),
                 widget.GroupBox(),
@@ -226,7 +226,7 @@ screens = [
                 widget.Systray(),
                 widget.Sep(),
                 widget.Image(
-                    filename='~/.config/qtile/volume.png',
+                    filename=f'{HOME}/.config/qtile/volume.png',
                     margin_x=5,
                     margin_y=5,
                     margin=0),
@@ -238,7 +238,7 @@ screens = [
                 ),
                 widget.Sep(),
                 widget.Image(
-                    filename='~/.config/qtile/calendar.png',
+                    filename=f'{HOME}/.config/qtile/calendar.png',
                     margin_x=5,
                     margin_y=5,
                     mouse_callbacks={'Button1': lambda qtile: qtile.cmd_spawn('gnome-calendar')},
@@ -247,7 +247,7 @@ screens = [
                 widget.Clock(format=' %Y-%m-%d %H:%M '),
                 widget.Sep(),
                 widget.Image(
-                    filename='~/.config/qtile/logout.png',
+                    filename=f'{HOME}/.config/qtile/logout.png',
                     margin_x=5,
                     margin_y=5,
                     mouse_callbacks={'Button1': lambda qtile: qtile.cmd_spawn('gnome-session-quit --logout --no-prompt')},
@@ -338,5 +338,5 @@ def dbus_register():
 @hook.subscribe.startup_once
 def autostart():
     logger.info('start')
-    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    home = f'{HOME}/.config/qtile/autostart.sh'
     subprocess.call([home])
