@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from distutils.spawn import spawn
 from typing import List  # noqa: F401
 
 from libqtile import bar, layout, widget
@@ -34,11 +35,13 @@ from libqtile.utils import guess_terminal
 # User setting
 import os
 import subprocess
-
+from libqtile.log_utils import logger
 
 mod = "mod4"
 mod1 = "mod1"
 terminal = guess_terminal()
+
+HOME = os.path.expanduser('~')
 
 def changeWallpaper():
     cmd = ['feh', '--bg-fill', '--randomize', '~/Pictures/backgrounds/ ']
@@ -107,22 +110,28 @@ keys = [
 
     Key(
         [], "XF86AudioRaiseVolume",
-        lazy.spawn("amixer -c 0 -q set Master 2dB+")
+        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume 2"))
     ),
     Key(
         [], "XF86AudioLowerVolume",
-        lazy.spawn("amixer -c 0 -q set Master 2dB-")
+        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume -2")),
     ),
     Key(
         [], "XF86AudioMute",
-        lazy.spawn("amixer -c 0 -q set Master toggle")
+        lazy.spawn(os.path.expanduser("~/.config/qtile/pcvolume --mute")),
     ),
 
     Key(
         [mod, mod1], "w",
         lazy.spawn("feh --bg-fill --randomize /home/ericson/Pictures/backgrounds/"),
         desc="Change wallpaper", 
-    )
+    ),
+
+    Key(
+        [mod, mod1], 'c',
+        lazy.spawn("gnome-control-center"),
+        desc="Gnome Control Center"
+    ),
 
 ]
 
@@ -143,6 +152,11 @@ for i in groups:
         #     desc="move focused window to group {}".format(i.name)),
     ])
 
+layout_theme = {
+                "border_width": 3,
+                "border_focus": "#d75f5f"
+}
+
 layouts = [
     layout.Columns(border_focus_stack='#d75f5f', split=False, border_width=3),
     layout.Max(),
@@ -150,7 +164,7 @@ layouts = [
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
     # layout.Matrix(),
-    layout.MonadTall(),
+    layout.MonadTall(**layout_theme),
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
@@ -170,7 +184,10 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                widget.CurrentLayout(),
+                widget.CurrentLayoutIcon(
+                    custom_icon_paths = [os.path.expanduser("~/.config/qtile/icons")],
+                    padding = 0,
+                    scale = 0.7),
                 widget.GroupBox(),
                 widget.Prompt(prompt="> "),
                 widget.WindowName(),
@@ -213,9 +230,28 @@ screens = [
                     margin_x=5,
                     margin_y=5,
                     margin=0),
-                widget.PulseVolume(),
+                widget.Volume(
+                    mute_command = f'{HOME}/.config/qtile/pcvolume --mute',
+                    get_volume_command = f'{HOME}/.config/qtile/pcvolume',
+                    volume_down_command = f'{HOME}/.config/qtile/pcvolume -2',
+                    volume_up_command = f'{HOME}/.config/qtile/pcvolume 2',
+                ),
                 widget.Sep(),
-                widget.Clock(format='%Y-%m-%d %a %I:%M %p'),
+                widget.Image(
+                    filename='~/.config/qtile/calendar.png',
+                    margin_x=5,
+                    margin_y=5,
+                    mouse_callbacks={'Button1': lambda qtile: qtile.cmd_spawn('gnome-calendar')},
+                    margin=0
+                ),
+                widget.Clock(format=' %Y-%m-%d %H:%M '),
+                widget.Sep(),
+                widget.Image(
+                    filename='~/.config/qtile/logout.png',
+                    margin_x=5,
+                    margin_y=5,
+                    mouse_callbacks={'Button1': lambda qtile: qtile.cmd_spawn('gnome-session-quit --logout --no-prompt')},
+                    margin=0),
                 # widget.Sep(),
                 # widget.QuickExit(),
             ],
@@ -301,5 +337,6 @@ def dbus_register():
 
 @hook.subscribe.startup_once
 def autostart():
+    logger.info('start')
     home = os.path.expanduser('~/.config/qtile/autostart.sh')
     subprocess.call([home])
