@@ -25,23 +25,30 @@
 # SOFTWARE.
 
 from distutils.spawn import spawn
-from typing import List  # noqa: F401
 
 from libqtile import bar, layout, widget
 from libqtile.config import Click, Drag, Group, Key, Screen, hook
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+
+
 # User setting
+import sys
 import os
 import subprocess
 from libqtile.log_utils import logger
+
+HOME = os.path.expanduser('~')
+
+sys.path.insert(0, f'{HOME}/.config/qtile')
+
+from radio import Radio
 
 mod = "mod4"
 mod1 = "mod1"
 terminal = guess_terminal()
 
-HOME = os.path.expanduser('~')
 
 def changeWallpaper():
     cmd = ['feh', '--bg-fill', '--randomize', f'{HOME}/Pictures/backgrounds/ ']
@@ -196,6 +203,16 @@ screens = [
                         'launch': ("#ff0000", "#ffffff"),
                     },
                     name_transform=lambda name: name.upper(),
+                ),
+                widget.Sep(),
+                Radio(
+                    playlist = {
+                        "BLU": "http://17473.live.streamtheworld.com:3690/BLURADIO_SC",
+                        "RADIONICA": "http://shoutcast.rtvc.gov.co:8010/;",
+                        "ASPEN": "http://15363.live.streamtheworld.com:3690/ASPENAAC_SC",
+                        "RADIOACTIVA": "http://18733.live.streamtheworld.com:3690/RADIO_ACTIVAAAC_SC",
+                        "123VALLENATO": "http://radiolatina.info:7087/;",
+                   },
                 ),
                 # widget.TextBox("default config", name="default"),
                 # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
