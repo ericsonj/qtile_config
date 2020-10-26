@@ -49,8 +49,8 @@ class Radio(base._TextBox):
     """
     orientations = base.ORIENTATION_HORIZONTAL
     defaults = [
-        ("playing_spinner", ["●","●","○"], "Ascii spinner for playing indicator"),
-        ("stopped_spinner", ["▶"], "Ascii spinner for playing indicator"),
+        ("playing_spinner", ["●","●","○","○"], "Ascii spinner for playing indicator"),
+        ("default_spinner", ["📻"], "Ascii spinner for playing indicator"),
         ("max_name_len", 10, "Max name length of radio to be display"),
         ("mute_string", "M", "Mute string for display"),
         ("playlist", None, "Play dict of urls, name : url"),
@@ -94,6 +94,7 @@ class Radio(base._TextBox):
     def update(self):
         if not self.playlist:
             return
+        
         radioItem = list(self.playlist)[self.playlistIdx][:self.max_name_len]
         
         if self.player.get_state() == vlc.State.Playing:
@@ -103,16 +104,19 @@ class Radio(base._TextBox):
             label = self.playing_spinner[self.animTick % len(self.playing_spinner)]
             self.text  = f"{label} {radioItem}, V: {volume}"
         elif self.player.get_state() == vlc.State.Stopped:
-            label = self.stopped_spinner[self.animTick % len(self.stopped_spinner)]
+            label = self.default_spinner[self.animTick % len(self.default_spinner)]
             self.text  = f"{label} {radioItem}"
         elif self.player.get_state() == vlc.State.Error:
-            self.text  = f"▶ {radioItem} Error"
+            label = self.default_spinner[self.animTick % len(self.default_spinner)]
+            self.text  = f"{label} {radioItem} Error"
         elif self.player.get_state() == vlc.State.Ended:
-            self.text  = f"▶ {radioItem} Ended"
+            label = self.default_spinner[self.animTick % len(self.default_spinner)]
+            self.text  = f"{label} {radioItem} Ended"
         elif self.player.get_state() == vlc.State.Opening:
-            self.text  = f"▶ {radioItem} Opening"
+            label = self.default_spinner[self.animTick % len(self.default_spinner)]
+            self.text  = f"{label} {radioItem} Opening"
         else:
-            label = self.stopped_spinner[self.animTick % len(self.stopped_spinner)]
+            label = self.default_spinner[self.animTick % len(self.default_spinner)]
             self.text  = f"{label} {radioItem}"
             
         self.draw()
@@ -133,12 +137,11 @@ class Radio(base._TextBox):
         logger.warn('cmd_playstop_radio')
         if self.player.get_state() == vlc.State.Playing:
             self.player.stop()
-        else:
-            if self.player.get_media() == None or self.player.get_state() == vlc.State.Ended:
+        elif self.player.get_media() == None or self.player.get_state() == vlc.State.Ended or self.player.get_state() == vlc.State.Stopped:
                 radioItemKey = list(self.playlist)[self.playlistIdx];
                 media = self.vlcInstance.media_new(self.playlist[radioItemKey])
                 self.player.set_media(media)
-            self.player.play()
+                self.player.play()
 
 
     def cmd_next_radio(self):
@@ -151,12 +154,15 @@ class Radio(base._TextBox):
         self.playlistIdx += 1
         self.playlistIdx = self.playlistIdx % len(self.playlist)
         
-        self.player.stop()
-        radioItemKey = list(self.playlist)[self.playlistIdx];
-        media=self.vlcInstance.media_new(self.playlist[radioItemKey])
-        self.player.set_media(media)
-        self.player.play()
-    
+        if self.player.get_state() == vlc.State.Playing:
+            self.player.stop()
+            radioItemKey = list(self.playlist)[self.playlistIdx];
+            media=self.vlcInstance.media_new(self.playlist[radioItemKey])
+            self.player.set_media(media)
+            self.player.play()
+
+        self.update()
+
 
     def cmd_raise_volume(self):
         self.player.audio_set_volume(self.player.audio_get_volume() + 2)
