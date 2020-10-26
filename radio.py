@@ -104,7 +104,7 @@ class Radio(base._TextBox):
             self.text  = f"{label} {radioItem}, V: {volume}"
         elif self.player.get_state() == vlc.State.Stopped:
             label = self.stopped_spinner[self.animTick % len(self.stopped_spinner)]
-            self.text  = f"{label} {radioItem} Stopped"
+            self.text  = f"{label} {radioItem}"
         elif self.player.get_state() == vlc.State.Error:
             self.text  = f"▶ {radioItem} Error"
         elif self.player.get_state() == vlc.State.Ended:
@@ -112,7 +112,8 @@ class Radio(base._TextBox):
         elif self.player.get_state() == vlc.State.Opening:
             self.text  = f"▶ {radioItem} Opening"
         else:
-            self.text  = f"▶ {radioItem}"
+            label = self.stopped_spinner[self.animTick % len(self.stopped_spinner)]
+            self.text  = f"{label} {radioItem}"
             
         self.draw()
         self.bar.draw()
